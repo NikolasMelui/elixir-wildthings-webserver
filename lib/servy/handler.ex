@@ -4,11 +4,12 @@ defmodule Servy.Handler do
   """
 
   alias Servy.Conv
+  alias Servy.BearController
 
   @pages_path Path.expand("../../pages", __DIR__)
 
-  import Servy.Plugins, only: [rewrite_path: 1, log: 1, track: 1]
   import Servy.Parser, only: [parse: 1]
+  import Servy.Plugins, only: [rewrite_path: 1, log: 1, track: 1]
 
   @doc """
   Transforms the request into the response.
@@ -24,15 +25,20 @@ defmodule Servy.Handler do
   end
 
   def route(%Conv{method: "GET", path: "/wildthings"} = conv) do
-    %Conv{conv | status: 200, resp_body: "Bears, Lions, Tigers"}
+    %{conv | status: 200, resp_body: "Bears, Lions, Tigers"}
   end
 
   def route(%Conv{method: "GET", path: "/bears"} = conv) do
-    %Conv{conv | status: 200, resp_body: "Teddy, Smokey, Paddington"}
+    BearController.index(conv)
   end
 
   def route(%Conv{method: "GET", path: "/bears/" <> id} = conv) do
-    %Conv{conv | status: 200, resp_body: "Bear #{id}"}
+    params = Map.put(conv.params, "id", id)
+    BearController.show(conv, params)
+  end
+
+  def route(%Conv{method: "POST", path: "/bears"} = conv) do
+    BearController.create(conv, conv.params)
   end
 
   def route(%Conv{method: "GET", path: "/about"} = conv) do
@@ -42,32 +48,28 @@ defmodule Servy.Handler do
     |> handle_file(conv)
   end
 
-  def route(%Conv{method: "POST", path: "/bears"} = conv) do
-    %Conv{conv | status: 201, resp_body: "Create a #{conv.params["type"]} bear named #{conv.params["name"]}"}
-  end
-
   def route(%Conv{path: path} = conv) do
-    %Conv{conv | status: 404, resp_body: "The #{path} is not exists"}
+    %Conv{conv | status: 404, resp_body: "No #{path} here!"}
   end
 
-  def handle_file({:ok, content}, %Conv{} = conv) do
+  def handle_file({:ok, content}, conv) do
     %Conv{conv | status: 200, resp_body: content}
   end
 
-  def handle_file({:error, :enoent}, %Conv{} = conv) do
+  def handle_file({:error, :enoent}, conv) do
     %Conv{conv | status: 404, resp_body: "File not found!"}
   end
 
-  def handle_file({:error, reason}, %Conv{} = conv) do
+  def handle_file({:error, reason}, conv) do
     %Conv{conv | status: 500, resp_body: "File error: #{reason}"}
   end
 
   def format_response(%Conv{} = conv) do
     """
-    HTTP/1.1 Conv.full_status(conv)
-    Content-Type: text/html
-    Content-Length: #{String.length(conv.resp_body)}
-
+    HTTP/1.1 Conv.full_status(conv)\r
+    Content-Type: text/html\r
+    Content-Length: #{String.length(conv.resp_body)}\r
+    \r
     #{conv.resp_body}
     """
   end
