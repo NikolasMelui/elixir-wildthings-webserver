@@ -4,12 +4,10 @@ defmodule Servy do
   """
 
   @doc """
-  Hello world.
+  First project made by @nikolasmelui.
 
   ## Examples
-
       iex> Servy.hello()
       :world
-
   """
 end
