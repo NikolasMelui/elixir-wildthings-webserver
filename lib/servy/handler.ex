@@ -43,7 +43,7 @@ defmodule Servy.Handler do
 
   def route(%Conv{method: "GET", path: "/about"} = conv) do
     @pages_path
-    |> Path.join("about.htm")
+    |> Path.join("about.html")
     |> File.read()
     |> handle_file(conv)
   end
@@ -66,7 +66,7 @@ defmodule Servy.Handler do
 
   def format_response(%Conv{} = conv) do
     """
-    HTTP/1.1 Conv.full_status(conv)\r
+    HTTP/1.1 #{Conv.full_status(conv)}\r
     Content-Type: text/html\r
     Content-Length: #{String.length(conv.resp_body)}\r
     \r
@@ -74,76 +74,3 @@ defmodule Servy.Handler do
     """
   end
 end
-
-#
-# /wildthings
-#
-request = """
-GET /wildthings HTTP/1.1
-Host: example.com
-User-Agent: ExampleBrowser/1.0
-Accept: */*
-
-"""
-
-response = Servy.Handler.handle(request)
-IO.puts(response)
-
-#
-# /bears
-#
-request = """
-GET /bears HTTP/1.1
-Host: example.com
-User-Agent: ExampleBrowser/1.0
-Accept: */*
-
-"""
-
-response = Servy.Handler.handle(request)
-IO.puts(response)
-
-#
-# /bears/1
-#
-request = """
-GET /bears/1 HTTP/1.1
-Host: example.com
-User-Agent: ExampleBrowser/1.0
-Accept: */*
-
-"""
-
-response = Servy.Handler.handle(request)
-IO.puts(response)
-
-#
-# /undefined
-#
-request = """
-GET /undefined HTTP/1.1
-Host: example.com
-User-Agent: ExampleBrowser/1.0
-Accept: */*
-
-"""
-
-response = Servy.Handler.handle(request)
-IO.puts(response)
-
-#
-# POST
-#
-request = """
-POST /bears HTTP/1.1
-Host: example.com
-User-Agent: ExampleBrowser/1.0
-Accept: */*
-Content-Type: application/x-www-form-urlencoded
-Content-Length: 21
-
-name=Baloo&type=Brown
-"""
-
-response = Servy.Handler.handle(request)
-IO.puts(response)
